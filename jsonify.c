@@ -1,24 +1,11 @@
-#include "jsmn.h"
-#include "common.h"
+#include "jsonify.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+static int sp = 0;
+static int stack[MAXSTACK];
 
-#define TOKENS 100
-#define MAXSTACK 100
-
-int pop();
-int push(int val);
-
-ssize_t from_non_strict_json(jsmn_parser *p, char *line, ssize_t linelen, jsmntok_t *tokens, ssize_t nrtokens);
-void to_strict_json(const char *json, jsmntok_t *tokens, int nrtokens);
-
-int main()
+int
+from_loose_to_strict(char *output, size_t outputsize, char *input, ssize_t inputlen)
 {
-  char *line = NULL;
-  size_t linesize = 0;
-  ssize_t linelen;
   ssize_t nrtokens;
   jsmntype_t jt;
   jsmn_parser parser;
@@ -26,58 +13,64 @@ int main()
 
   jsmn_init(&parser);
 
-  while ((linelen = getline(&line, &linesize, stdin)) != -1) {
-    nrtokens = from_non_strict_json(&parser, line, linelen - 1, tokens, TOKENS);
-    fprintf(stderr, "len: %lu, tokens: %lu\n%s\n", linelen, nrtokens, line);
-    to_strict_json(line, tokens, nrtokens);
-  }
-  free(line);
-
-  return 0;
+  nrtokens = from_loose(&parser, input, inputlen, tokens, TOKENS);
+  return to_strict(output, outputsize, input, tokens, nrtokens);
 }
 
 ssize_t
-from_non_strict_json(jsmn_parser *p, char *line, ssize_t linelen, jsmntok_t *tokens, ssize_t nrtokens)
+from_loose(jsmn_parser *p, char *line, ssize_t linelen, jsmntok_t *tokens, ssize_t nrtokens)
 {
   return jsmn_parse(p, line, linelen, tokens, nrtokens);
 }
 
-void
-to_strict_json(const char *json, jsmntok_t *tokens, int nrtokens)
+int
+to_strict(char *output, size_t outputsize, const char *input, jsmntok_t *tokens, int nrtokens)
 {
   char *key, c;
   jsmntok_t *tok;
-  int type, i, j;
+  int len, i, j;
+
+  if (outputsize < 1)
+    return -1;
+
+  // ensure termination
+  *output = '\0';
 
   for (i = 0; i < nrtokens; i++) {
     tok = &tokens[i];
-    type = tok->type;
-    key = strndup(json + tok->start, tok->end - tok->start);
+    key = strndup(input + tok->start, tok->end - tok->start);
 
     // 1.
-    switch (type) {
+    switch (tok->type) {
     case JSMN_OBJECT:
-      printf("%c", '{');
+      strlcat(output, "{", outputsize);
       push('}');
       break;
     case JSMN_ARRAY:
-      printf("%c", '[');
+      strlcat(output, "[", outputsize);
       push(']');
       break;
     case JSMN_UNDEFINED:
-      printf("%s", "undefined");
-      if (tok->size)
-        printf("%c", ':');
+      if (tok->size) { // quote keys
+        strlcat(output, "\"undefined\":", outputsize);
+      } else { // don't quote values
+        strlcat(output, key, outputsize);
+      }
       break;
     case JSMN_STRING:
-      printf("\"%s\"", key);
-      if (tok->size)
-        printf("%c", ':');
+      strlcat(output, "\"", outputsize);
+      strlcat(output, key, outputsize);
+      strlcat(output, "\"", outputsize);
+      if (tok->size) // this is a key
+        strlcat(output, ":", outputsize);
       break;
     case JSMN_PRIMITIVE:
-      printf("%s", key);
-      if (tok->size)
-        printf("%c", ':');
+      if (tok->size) { // quote keys
+        strlcat(output, "\"", outputsize);
+        strlcat(output, key, outputsize);
+        strlcat(output, "\":", outputsize);
+      } else // don't quote values
+        strlcat(output, key, outputsize);
       break;
     default:
       fatal("unknown json token type");
@@ -85,7 +78,7 @@ to_strict_json(const char *json, jsmntok_t *tokens, int nrtokens)
 
     // 2.
     for (j = 0; j < tok->size - 1; j++)
-      switch (type) {
+      switch (tok->type) {
       case JSMN_OBJECT:
         if (push(',') == -1)
           fatal("stack push error");
@@ -100,24 +93,31 @@ to_strict_json(const char *json, jsmntok_t *tokens, int nrtokens)
 
     // 3.
     if (!tok->size) {
-      if ((c = pop()) != -1)
-        printf("%c", c);
-      while (c == ']' || c == '}')
-        if ((c = pop()) != -1)
-          printf("%c", c);
+      if ((c = pop()) != -1) {
+        if ((len = strlen(output)) >= (outputsize - 1)) {
+          fprintf(stderr, "len: %d %s\n", len, output);
+          fatal("output full");
+        } else {
+          output[len] = c;
+          output[len + 1] = '\0';
+        }
+      }
+      while (c == ']' || c == '}') {
+        if ((c = pop()) != -1) {
+          if ((len = strlen(output)) >= (outputsize - 1)) {
+            fprintf(stderr, "len: %d %s\n", len, output);
+            fatal("output full");
+          } else {
+            output[len] = c;
+            output[len + 1] = '\0';
+          }
+        }
+      }
     }
   }
-  // flush stack
-  //if ((c = pop()) != -1)
-    //printf("%c", c);
-
-  if (nrtokens)
-    printf("\n");
+ 
+  return 0;
 }
-
-// natural number stack
-static int sp = 0;
-static int stack[MAXSTACK];
 
 // pop item from the stack
 // return item on the stack on success, -1 on error

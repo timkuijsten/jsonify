@@ -39,3 +39,5 @@ run 3 '[{a:true,b:false},[{c:[2,3,{$some:true}]}]]'
 
 # three-dimensional
 run 3 '[{a:true,b:false},[{c:[2,3,{$some:true}]}]]'
+
+run x '[{$project:{by:true,action:true,on:true,sid:true}},{$match:{action:{$in:[''socketstart'',''socketstop'']}}},{$group:{_id:{sid:"$sid",uid:"$by"},login:{$min:"$on"},logout:{$max:"$on"}}},{$project:{login:true,logout:true,duration:{$subtract:["$logout","$login"]}}},{$project:{uid:"$_id.uid",duration:true,yearWeek:{$dateToString:{format:''%Y%U'',date:"$login"}}}},{$group:{_id:{uid:"$uid",yearWeek:"$yearWeek"},duration:{$sum:"$duration"}}},{$project:{duration:{$divide:["$duration",60*1000]}}}]'
