@@ -65,6 +65,12 @@ to_strict(char *output, size_t outputsize, const char *input, jsmntok_t *tokens,
         strlcat(output, ":", outputsize);
       break;
     case JSMN_PRIMITIVE:
+      // convert single quotes at beginning and end of string
+      if (key[0] == '\'')
+        key[0] = '"';
+      if (key[strlen(key) - 1] == '\'')
+        key[strlen(key) - 1] = '"';
+
       if (tok->size) { // quote keys
         strlcat(output, "\"", outputsize);
         strlcat(output, key, outputsize);
