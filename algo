@@ -1,0 +1,18 @@
+for each token
+1 if hasclosing(token)
+    draw openchar
+    push(closechar)
+  else
+    draw token
+
+2 if children(token)
+    for each child in token
+      push(nextchar)
+    pop()
+
+3 if nochildren(token)
+    popped <- pop
+    draw popped
+    while hasclosing(popped)
+      popped <- pop
+      draw popped
