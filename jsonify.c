@@ -20,7 +20,7 @@ static int sp = 0;
 static int stack[MAXSTACK];
 
 int
-relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t inputlen)
+relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t inputlen, int maxroot)
 {
   ssize_t nrtokens;
   jsmntype_t jt;
@@ -30,7 +30,7 @@ relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t in
   jsmn_init(&parser);
 
   nrtokens = from_relaxed(&parser, input, inputlen, tokens, TOKENS);
-  return to_strict(output, outputsize, input, tokens, nrtokens);
+  return to_strict(output, outputsize, input, tokens, nrtokens, maxroot);
 }
 
 ssize_t
@@ -40,11 +40,13 @@ from_relaxed(jsmn_parser *p, const char *line, ssize_t linelen, jsmntok_t *token
 }
 
 int
-to_strict(char *output, size_t outputsize, const char *input, jsmntok_t *tokens, int nrtokens)
+to_strict(char *output, size_t outputsize, const char *input, jsmntok_t *tokens, int nrtokens, int maxroot)
 {
   char *key, c;
   jsmntok_t *tok;
   int len, i, j;
+
+  int rootobjs = 0;
 
   if (outputsize < 1)
     return -1;
@@ -125,7 +127,9 @@ to_strict(char *output, size_t outputsize, const char *input, jsmntok_t *tokens,
         }
       }
       while (c == ']' || c == '}') {
-        if ((c = pop()) != -1) {
+        if ((c = pop()) == -1) {
+          rootobjs++;
+        } else {
           if ((len = strlen(output)) >= (outputsize - 1)) {
             fprintf(stderr, "len: %d %s\n", len, output);
             fatal("output full");
@@ -136,6 +140,8 @@ to_strict(char *output, size_t outputsize, const char *input, jsmntok_t *tokens,
         }
       }
     }
+    if (maxroot && maxroot == rootobjs)
+      break;
   }
  
   return 0;

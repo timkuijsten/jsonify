@@ -8,6 +8,7 @@
 #define MAXOUTPUT 1024
 
 void test_relaxed_to_strict(const char *input, const char *expected);
+void test_relaxed_to_strict_with_maxroot(const char *input, int maxroot, const char *expected);
 
 int main()
 {
@@ -54,6 +55,21 @@ int main()
   // multiple docs in one string
   test_relaxed_to_strict("{ a: true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}");
 
+  // multiple docs with nested multiple docs in one string
+  test_relaxed_to_strict("{ a: { b: true, c: false }, d: { a: { b: 0 } } } { b: \"false\" }  { some: 1234 }", "{\"a\":{\"b\":true,\"c\":false},\"d\":{\"a\":{\"b\":0}}}{\"b\":\"false\"}{\"some\":1234}");
+
+  //////////////
+  // with maxroot
+
+  test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 0, "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}");
+  test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 1, "{\"a\":true}");
+  test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 2, "{\"a\":true}{\"b\":\"false\"}");
+  test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 3, "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}");
+  test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 4, "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}");
+
+  // multiple docs with nested multiple docs in one string
+  test_relaxed_to_strict_with_maxroot("{ a: { b: true, c: false }, d: { a: { b: 0 } } } { b: \"false\" }  { some: 1234 }", 2, "{\"a\":{\"b\":true,\"c\":false},\"d\":{\"a\":{\"b\":0}}}{\"b\":\"false\"}");
+
   return 0;
 }
 
@@ -62,7 +78,21 @@ test_relaxed_to_strict(const char *input, const char *expected)
 {
   char output[MAXOUTPUT];
 
-  if (relaxed_to_strict(output, MAXOUTPUT, (char *)input, strlen(input)) == -1)
+  if (relaxed_to_strict(output, MAXOUTPUT, (char *)input, strlen(input), 0) == -1)
+    fatal("jsonify error");
+
+  if (strcmp(expected, output) == 0)
+    printf("OK: %s\n", expected);
+  else
+    fprintf(stderr, "ERROR: %s  !=  %s\n", expected, output);
+}
+
+void
+test_relaxed_to_strict_with_maxroot(const char *input, int maxroot, const char *expected)
+{
+  char output[MAXOUTPUT];
+
+  if (relaxed_to_strict(output, MAXOUTPUT, (char *)input, strlen(input), maxroot) == -1)
     fatal("jsonify error");
 
   if (strcmp(expected, output) == 0)
