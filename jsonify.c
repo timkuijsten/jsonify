@@ -27,9 +27,12 @@ relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t in
   jsmn_parser parser;
   jsmntok_t tokens[TOKENS];
 
-  jsmn_init(&parser);
+  do {
+    jsmn_init(&parser);
 
-  nrtokens = from_relaxed(&parser, input, inputlen, tokens, TOKENS);
+    nrtokens = from_relaxed(&parser, input, inputlen, tokens, TOKENS);
+  } while (maxroot && --inputlen && nrtokens == JSMN_ERROR_PART); // try incomplete json docs if a maxroot is given
+
   return to_strict(output, outputsize, input, tokens, nrtokens, maxroot);
 }
 

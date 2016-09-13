@@ -70,6 +70,9 @@ int main()
   // multiple docs with nested multiple docs in one string
   test_relaxed_to_strict_with_maxroot("{ a: { b: true, c: false }, d: { a: { b: 0 } } } { b: \"false\" }  { some: 1234 }", 2, "{\"a\":{\"b\":true,\"c\":false},\"d\":{\"a\":{\"b\":0}}}{\"b\":\"false\"}");
 
+  // test incomplete documents
+  test_relaxed_to_strict_with_maxroot("{ a: true } { b:", 1, "{\"a\":true}");
+
   return 0;
 }
 
