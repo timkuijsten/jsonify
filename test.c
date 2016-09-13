@@ -7,7 +7,7 @@
 
 #define MAXOUTPUT 1024
 
-int run_test(const char *input, const char *expected);
+void run_test(const char *input, const char *expected);
 
 int main()
 {
@@ -54,12 +54,12 @@ int main()
   return 0;
 }
 
-int
+void
 run_test(const char *input, const char *expected)
 {
   char output[MAXOUTPUT];
 
-  if (from_loose_to_strict(output, MAXOUTPUT, (char *)input, strlen(input)) == -1)
+  if (relaxed_to_strict(output, MAXOUTPUT, (char *)input, strlen(input)) == -1)
     fatal("jsonify error");
 
   if (strcmp(expected, output) == 0)

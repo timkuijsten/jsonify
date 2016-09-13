@@ -14,7 +14,7 @@ int main()
   char output[MAXLEN];
 
   while ((linelen = getline(&line, &linesize, stdin)) != -1) {
-    from_loose_to_strict(output, MAXLEN, line, linelen - 1);
+    relaxed_to_strict(output, MAXLEN, line, linelen - 1);
     printf("%s\n", output);
   }
   free(line);
