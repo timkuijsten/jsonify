@@ -5,101 +5,128 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAXOUTPUT 1024
+#define MAXSTR 1024
 
-void test_relaxed_to_strict(const char *input, const char *expected);
-void test_relaxed_to_strict_with_maxroot(const char *input, int maxroot, const char *expected);
+int test_relaxed_to_strict(const char *input, const char *exp, const int exp_exit);
+int test_relaxed_to_strict_with_maxroot(const char *input, const int maxroot, const char *exp, const int exp_exit);
 
 int main()
 {
+  int failed = 0;
+
+  printf("test relaxed_to_strict:\n");
+
   // one-dimensional
-  test_relaxed_to_strict("1", "1");
-  test_relaxed_to_strict("[]", "[]");
-  test_relaxed_to_strict("[1]", "[1]");
-  test_relaxed_to_strict("[1,2]", "[1,2]");
+  failed += test_relaxed_to_strict("1", "1", 1);
+  failed += test_relaxed_to_strict("[]", "[]", 2);
+  failed += test_relaxed_to_strict("[1]", "[1]", 3);
+  failed += test_relaxed_to_strict("[1,2]", "[1,2]", 5);
 
   // two-dimensional
-  test_relaxed_to_strict("[[]]", "[[]]");
-  test_relaxed_to_strict("[1,[]]", "[1,[]]");
-  test_relaxed_to_strict("[[],1]", "[[],1]");
-  test_relaxed_to_strict("[1,[2]]", "[1,[2]]");
-  test_relaxed_to_strict("[[1],2]", "[[1],2]");
-  test_relaxed_to_strict("[1,2,[3,4],5]", "[1,2,[3,4],5]");
-  test_relaxed_to_strict("[1,[2,3,4],5,6]", "[1,[2,3,4],5,6]");
+  failed += test_relaxed_to_strict("[[]]", "[[]]", 4);
+  failed += test_relaxed_to_strict("[1,[]]", "[1,[]]", 6);
+  failed += test_relaxed_to_strict("[[],1]", "[[],1]", 6);
+  failed += test_relaxed_to_strict("[1,[2]]", "[1,[2]]", 7);
+  failed += test_relaxed_to_strict("[[1],2]", "[[1],2]", 7);
+  failed += test_relaxed_to_strict("[1,2,[3,4],5]", "[1,2,[3,4],5]", 13);
+  failed += test_relaxed_to_strict("[1,[2,3,4],5,6]", "[1,[2,3,4],5,6]", 15);
 
   // three-dimensional
-  test_relaxed_to_strict("[[],1,[2,3],4,[5,[],[6,7],8]]", "[[],1,[2,3],4,[5,[],[6,7],8]]");
+  failed += test_relaxed_to_strict("[[],1,[2,3],4,[5,[],[6,7],8]]", "[[],1,[2,3],4,[5,[],[6,7],8]]", 29);
 
   // four-dimensional
-  test_relaxed_to_strict("[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,73],6,7],8]]", "[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,73],6,7],8]]");
+  failed += test_relaxed_to_strict("[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,73],6,7],8]]", "[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,73],6,7],8]]", 61);
 
   // five-dimensional
-  test_relaxed_to_strict("[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,[23]],6,7],8]]", "[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,[23]],6,7],8]]");
+  failed += test_relaxed_to_strict("[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,[23]],6,7],8]]", "[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,[23]],6,7],8]]", 63);
 
   // six-dimensional
-  test_relaxed_to_strict("[[],[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,[23]],6,7],8]]]", "[[],[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,[23]],6,7],8]]]");
+  failed += test_relaxed_to_strict("[[],[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,[23]],6,7],8]]]", "[[],[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,[23]],6,7],8]]]", 68);
 
   // one-dimensional
-  test_relaxed_to_strict("{a:true}", "{\"a\":true}");
+  failed += test_relaxed_to_strict("{a:true}", "{\"a\":true}", 8);
 
   // two-dimensional
-  test_relaxed_to_strict("[{a:true,b:false},[{c:true}]]", "[{\"a\":true,\"b\":false},[{\"c\":true}]]");
+  failed += test_relaxed_to_strict("[{a:true,b:false},[{c:true}]]", "[{\"a\":true,\"b\":false},[{\"c\":true}]]", 29);
 
   // three-dimensional
-  test_relaxed_to_strict("[{a:true,b:false},[{c:[2,3,{$some:true}]}]]", "[{\"a\":true,\"b\":false},[{\"c\":[2,3,{\"$some\":true}]}]]");
+  failed += test_relaxed_to_strict("[{a:true,b:false},[{c:[2,3,{$some:true}]}]]", "[{\"a\":true,\"b\":false},[{\"c\":[2,3,{\"$some\":true}]}]]", 43);
 
-  test_relaxed_to_strict(
+  failed += test_relaxed_to_strict(
       "[{$project:{by:true,action:true,on:true,sid:true}},{$match:{action:{$in:['socketstart','socketstop']}}},{$group:{_id:{sid:\"$sid\",uid:\"$by\"},login:{$min:\"$on\"},logout:{$max:\"$on\"}}},{$project:{login:true,logout:true,duration:{$subtract:[\"$logout\",\"$login\"]}}},{$project:{uid:\"$_id.uid\",duration:true,yearWeek:{$dateToString:{format:'%Y%U',date:\"$login\"}}}},{$group:{_id:{uid:\"$uid\",yearWeek:\"$yearWeek\"},duration:{$sum:\"$duration\"}}},{$project:{duration:{$divide:[\"$duration\",60*1000]}}}]",
-      "[{\"$project\":{\"by\":true,\"action\":true,\"on\":true,\"sid\":true}},{\"$match\":{\"action\":{\"$in\":[\"socketstart\",\"socketstop\"]}}},{\"$group\":{\"_id\":{\"sid\":\"$sid\",\"uid\":\"$by\"},\"login\":{\"$min\":\"$on\"},\"logout\":{\"$max\":\"$on\"}}},{\"$project\":{\"login\":true,\"logout\":true,\"duration\":{\"$subtract\":[\"$logout\",\"$login\"]}}},{\"$project\":{\"uid\":\"$_id.uid\",\"duration\":true,\"yearWeek\":{\"$dateToString\":{\"format\":\"%Y%U\",\"date\":\"$login\"}}}},{\"$group\":{\"_id\":{\"uid\":\"$uid\",\"yearWeek\":\"$yearWeek\"},\"duration\":{\"$sum\":\"$duration\"}}},{\"$project\":{\"duration\":{\"$divide\":[\"$duration\",60*1000]}}}]");
+      "[{\"$project\":{\"by\":true,\"action\":true,\"on\":true,\"sid\":true}},{\"$match\":{\"action\":{\"$in\":[\"socketstart\",\"socketstop\"]}}},{\"$group\":{\"_id\":{\"sid\":\"$sid\",\"uid\":\"$by\"},\"login\":{\"$min\":\"$on\"},\"logout\":{\"$max\":\"$on\"}}},{\"$project\":{\"login\":true,\"logout\":true,\"duration\":{\"$subtract\":[\"$logout\",\"$login\"]}}},{\"$project\":{\"uid\":\"$_id.uid\",\"duration\":true,\"yearWeek\":{\"$dateToString\":{\"format\":\"%Y%U\",\"date\":\"$login\"}}}},{\"$group\":{\"_id\":{\"uid\":\"$uid\",\"yearWeek\":\"$yearWeek\"},\"duration\":{\"$sum\":\"$duration\"}}},{\"$project\":{\"duration\":{\"$divide\":[\"$duration\",60*1000]}}}]", 487);
 
   // multiple docs in one string
-  test_relaxed_to_strict("{ a: true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}");
+  failed += test_relaxed_to_strict("{ a: true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}", 42);
 
   // multiple docs with nested multiple docs in one string
-  test_relaxed_to_strict("{ a: { b: true, c: false }, d: { a: { b: 0 } } } { b: \"false\" }  { some: 1234 }", "{\"a\":{\"b\":true,\"c\":false},\"d\":{\"a\":{\"b\":0}}}{\"b\":\"false\"}{\"some\":1234}");
+  failed += test_relaxed_to_strict("{ a: { b: true, c: false }, d: { a: { b: 0 } } } { b: \"false\" }  { some: 1234 }", "{\"a\":{\"b\":true,\"c\":false},\"d\":{\"a\":{\"b\":0}}}{\"b\":\"false\"}{\"some\":1234}", 79);
 
   //////////////
   // with maxroot
 
-  test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 0, "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}");
-  test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 1, "{\"a\":true}");
-  test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 2, "{\"a\":true}{\"b\":\"false\"}");
-  test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 3, "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}");
-  test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 4, "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}");
+  printf("test relaxed_to_strict with maxroot:\n");
+
+  failed += test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 0, "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}", 42);
+  failed += test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 1, "{\"a\":true}", 42);
+  failed += test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 2, "{\"a\":true}{\"b\":\"false\"}", 42);
+  failed += test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 3, "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}", 42);
+  failed += test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 4, "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}", 42);
 
   // multiple docs with nested multiple docs in one string
-  test_relaxed_to_strict_with_maxroot("{ a: { b: true, c: false }, d: { a: { b: 0 } } } { b: \"false\" }  { some: 1234 }", 2, "{\"a\":{\"b\":true,\"c\":false},\"d\":{\"a\":{\"b\":0}}}{\"b\":\"false\"}");
+  failed += test_relaxed_to_strict_with_maxroot("{ a: { b: true, c: false }, d: { a: { b: 0 } } } { b: \"false\" }  { some: 1234 }", 2, "{\"a\":{\"b\":true,\"c\":false},\"d\":{\"a\":{\"b\":0}}}{\"b\":\"false\"}", 79);
 
   // test incomplete documents
-  test_relaxed_to_strict_with_maxroot("{ a: true } { b:", 1, "{\"a\":true}");
+  failed += test_relaxed_to_strict_with_maxroot("{ a: true } { b:", 1, "{\"a\":true}", 12);
+  failed += test_relaxed_to_strict_with_maxroot("{ a: true  { b:", 1, "{ a: true  { b:", -1);
 
-  return 0;
+  return failed;
 }
 
-void
-test_relaxed_to_strict(const char *input, const char *expected)
+int
+test_relaxed_to_strict(const char *input, const char *exp, const int exp_exit)
 {
-  char output[MAXOUTPUT];
+  int exit;
+  char str[MAXSTR];
 
-  if (relaxed_to_strict(output, MAXOUTPUT, (char *)input, strlen(input), 0) == -1)
-    fatal("jsonify error");
 
-  if (strcmp(expected, output) == 0)
-    printf("OK: %s\n", expected);
-  else
-    fprintf(stderr, "ERROR: %s  !=  %s\n", expected, output);
+  strcpy(str, input);
+  if ((exit = relaxed_to_strict(str, MAXSTR, (char *)input, strlen(input), 0)) != exp_exit) {
+    fprintf(stderr, "FAIL: %s = exit: %d, expected: %d\n", input, exit, exp_exit);
+    return 1;
+  }
+
+  if (strcmp(str, exp) == 0) {
+    printf("PASS: %s = \"%s\"\n", input, str);
+    return 0;
+  } else {
+    fprintf(stderr, "FAIL: %s = \"%s\" instead of \"%s\"\n", input, str, exp);
+    return 1;
+  }
+
+  return -1;
 }
 
-void
-test_relaxed_to_strict_with_maxroot(const char *input, int maxroot, const char *expected)
+int
+test_relaxed_to_strict_with_maxroot(const char *input, const int maxroot, const char *exp, const int exp_exit)
 {
-  char output[MAXOUTPUT];
+  int exit;
+  char str[MAXSTR];
 
-  if (relaxed_to_strict(output, MAXOUTPUT, (char *)input, strlen(input), maxroot) == -1)
-    fatal("jsonify error");
 
-  if (strcmp(expected, output) == 0)
-    printf("OK: %s\n", expected);
-  else
-    fprintf(stderr, "ERROR: %s  !=  %s\n", expected, output);
+  strcpy(str, input);
+  if ((exit = relaxed_to_strict(str, MAXSTR, (char *)input, strlen(input), maxroot)) != exp_exit) {
+    fprintf(stderr, "FAIL: %s = exit: %d, expected: %d\n", input, exit, exp_exit);
+    return 1;
+  }
+
+  if (strcmp(str, exp) == 0) {
+    printf("PASS: %s = \"%s\"\n", input, str);
+    return 0;
+  } else {
+    fprintf(stderr, "FAIL: %s = \"%s\" instead of \"%s\"\n", input, str, exp);
+    return 1;
+  }
+
+  return -1;
 }

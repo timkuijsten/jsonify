@@ -22,7 +22,7 @@ Read a "relaxed" json document and convert to strict json:
 
 ## Tests
 
-    $ cc common.c jsmn.c jsonify.c test.c && ./a.out
+    $ cc common.c jsmn.c jsonify.c test.c && ./a.out; echo $?
 
 
 ## License
