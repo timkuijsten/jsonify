@@ -28,6 +28,6 @@
 int pop();
 int push(int val);
 
-int relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t inputlen, int maxroot);
+int relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t inputlen, int firstroot);
 int iterate(const char *input, jsmntok_t *tokens, int nrtokens, void (*iterator)(jsmntok_t *, char *, int, int, char *));
-int to_strict(char *output, size_t outputsize, const char *input, jsmntok_t *tokens, int nrtokens, int maxobj);
+void writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym);

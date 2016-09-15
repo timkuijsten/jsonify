@@ -23,19 +23,26 @@ static char closesym[MAXSTACK];
 static char out[MAXOUTPUT];
 static size_t outsize = MAXOUTPUT;
 
-// iterator
-void writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym);
-
 int
-relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t inputlen, int maxroot)
+relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t inputlen, int firstroot)
 {
+  int i;
   ssize_t nrtokens;
   jsmntype_t jt;
   jsmn_parser parser;
   jsmntok_t tokens[TOKENS];
 
-  jsmn_init(&parser);
-  nrtokens = jsmn_parse(&parser, input, inputlen, tokens, TOKENS);
+  if (firstroot) {
+    // stop after first root
+    i = 0;
+    do {
+      jsmn_init(&parser);
+      nrtokens = jsmn_parse(&parser, input, i++, tokens, TOKENS);
+    } while (i < inputlen && (nrtokens == JSMN_ERROR_PART || nrtokens == 0));
+  } else {
+    jsmn_init(&parser);
+    nrtokens = jsmn_parse(&parser, input, inputlen, tokens, TOKENS);
+  }
 
   // wipe internal buffer
   out[0] = '\0';
