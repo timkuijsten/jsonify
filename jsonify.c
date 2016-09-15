@@ -20,6 +20,12 @@ static int sp = 0;
 static int stack[MAXSTACK];
 static char closesym[MAXSTACK];
 
+static char out[MAXOUTPUT];
+static size_t outsize = MAXOUTPUT;
+
+// iterator
+void writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym);
+
 int
 relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t inputlen, int maxroot)
 {
@@ -28,19 +34,19 @@ relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t in
   jsmn_parser parser;
   jsmntok_t tokens[TOKENS];
 
-  do {
-    jsmn_init(&parser);
+  jsmn_init(&parser);
+  nrtokens = jsmn_parse(&parser, input, inputlen, tokens, TOKENS);
 
-    nrtokens = from_relaxed(&parser, input, inputlen, tokens, TOKENS);
-  } while (maxroot && --inputlen && nrtokens == JSMN_ERROR_PART); // try incomplete json docs if a maxroot is given
+  // wipe internal buffer
+  out[0] = '\0';
 
-  return to_strict(output, outputsize, input, tokens, nrtokens, maxroot);
-}
+  if (iterate(input, tokens, nrtokens, (void (*)(jsmntok_t *, char *, int, int, char *))writer) == -1)
+    return -1;
 
-ssize_t
-from_relaxed(jsmn_parser *p, const char *line, ssize_t linelen, jsmntok_t *tokens, ssize_t nrtokens)
-{
-  return jsmn_parse(p, line, linelen, tokens, nrtokens);
+  if (strlcpy(output, out, outputsize) > outputsize)
+    return -1;
+
+  return 0;
 }
 
 int
@@ -94,112 +100,57 @@ iterate(const char *input, jsmntok_t *tokens, int nrtokens, void (*iterator)(jsm
   return 0;
 }
 
-int
-to_strict(char *output, size_t outputsize, const char *input, jsmntok_t *tokens, int nrtokens, int maxroot)
+void
+writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym)
 {
-  char *key, c;
-  jsmntok_t *tok;
-  int len, i, j;
-
-  int rootobjs = 0;
-
-  if (outputsize < 1)
-    return -1;
-
-  // ensure termination
-  *output = '\0';
-
-  for (i = 0; i < nrtokens; i++) {
-    tok = &tokens[i];
-    key = strndup(input + tok->start, tok->end - tok->start);
-
-    // 1.
-    switch (tok->type) {
-    case JSMN_OBJECT:
-      strlcat(output, "{", outputsize);
-      push('}');
-      break;
-    case JSMN_ARRAY:
-      strlcat(output, "[", outputsize);
-      push(']');
-      break;
-    case JSMN_UNDEFINED:
-      if (tok->size) { // quote keys
-        strlcat(output, "\"undefined\":", outputsize);
-      } else { // don't quote values
-        strlcat(output, key, outputsize);
-      }
-      break;
-    case JSMN_STRING:
-      strlcat(output, "\"", outputsize);
-      strlcat(output, key, outputsize);
-      strlcat(output, "\"", outputsize);
-      if (tok->size) // this is a key
-        strlcat(output, ":", outputsize);
-      break;
-    case JSMN_PRIMITIVE:
-      // convert single quotes at beginning and end of string
-      if (key[0] == '\'')
-        key[0] = '"';
-      if (key[strlen(key) - 1] == '\'')
-        key[strlen(key) - 1] = '"';
-
-      if (tok->size) { // quote keys
-        strlcat(output, "\"", outputsize);
-        strlcat(output, key, outputsize);
-        strlcat(output, "\":", outputsize);
-      } else // don't quote values
-        strlcat(output, key, outputsize);
-      break;
-    default:
-      fatal("unknown json token type");
+  switch (tok->type) {
+  case JSMN_OBJECT:
+    strlcat(out, "{", outsize);
+    break;
+  case JSMN_ARRAY:
+    strlcat(out, "[", outsize);
+    break;
+  case JSMN_UNDEFINED:
+    if (tok->size) { // quote keys
+      strlcat(out, "\"undefined\":", outsize);
+    } else { // don't quote values
+      strlcat(out, key, outsize);
     }
+    break;
+  case JSMN_STRING:
+    strlcat(out, "\"", outsize);
+    strlcat(out, key, outsize);
+    strlcat(out, "\"", outsize);
+    if (tok->size) // this is a key
+      strlcat(out, ":", outsize);
+    break;
+  case JSMN_PRIMITIVE:
+    // convert single quotes at beginning and end of string
+    if (key[0] == '\'')
+      key[0] = '"';
+    if (key[strlen(key) - 1] == '\'')
+      key[strlen(key) - 1] = '"';
 
-    // 2.
-    for (j = 0; j < tok->size - 1; j++)
-      switch (tok->type) {
-      case JSMN_OBJECT:
-        if (push(',') == -1)
-          fatal("stack push error");
-        break;
-      case JSMN_ARRAY:
-        if (push(',') == -1)
-          fatal("stack push error");
-        break;
-      default:
-        fatal("unknown json token type");
-      }
-
-    // 3.
-    if (!tok->size) {
-      if ((c = pop()) != -1) {
-        if ((len = strlen(output)) >= (outputsize - 1)) {
-          fprintf(stderr, "len: %d %s\n", len, output);
-          fatal("output full");
-        } else {
-          output[len] = c;
-          output[len + 1] = '\0';
-        }
-      }
-      while (c == ']' || c == '}') {
-        if ((c = pop()) == -1) {
-          rootobjs++;
-        } else {
-          if ((len = strlen(output)) >= (outputsize - 1)) {
-            fprintf(stderr, "len: %d %s\n", len, output);
-            fatal("output full");
-          } else {
-            output[len] = c;
-            output[len + 1] = '\0';
-          }
-        }
-      }
-    }
-    if (maxroot && maxroot == rootobjs)
-      break;
+    if (tok->size) { // quote keys
+      strlcat(out, "\"", outsize);
+      strlcat(out, key, outsize);
+      strlcat(out, "\":", outsize);
+    } else // don't quote values
+      strlcat(out, key, outsize);
+    break;
+  default:
+    fatal("unknown json token type");
   }
- 
-  return 0;
+
+  // write any closing symbols
+  if (strlcat(out, closesym, outsize) > outsize)
+    return;
+
+  // if not increasing and not heading to the end of this root
+  if (ndepth && depth >= ndepth)
+    if (!tok->size) // and if not a key
+      if (strlcat(out, ",", outsize) > outsize)
+        return;
 }
 
 // pop item from the stack
