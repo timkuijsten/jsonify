@@ -18,6 +18,7 @@
 
 static int sp = 0;
 static int stack[MAXSTACK];
+static char closesym[MAXSTACK];
 
 int
 relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t inputlen, int maxroot)
@@ -43,9 +44,9 @@ from_relaxed(jsmn_parser *p, const char *line, ssize_t linelen, jsmntok_t *token
 }
 
 int
-iterate(const char *input, jsmntok_t *tokens, int nrtokens, void (*iterator)(jsmntok_t *, char *, int, int))
+iterate(const char *input, jsmntok_t *tokens, int nrtokens, void (*iterator)(jsmntok_t *, char *, int, int, char *))
 {
-  char *key, c;
+  char *key, *cp, c;
   jsmntok_t *tok;
   int i, j;
   int depth, ndepth;
@@ -58,8 +59,14 @@ iterate(const char *input, jsmntok_t *tokens, int nrtokens, void (*iterator)(jsm
 
     switch (tok->type) {
     case JSMN_OBJECT:
+      push('}');
+      ndepth++;
+      for (j = 0; j < tok->size - 1; j++)
+        if (push(',') == -1)
+          fatal("stack push error");
+      break;
     case JSMN_ARRAY:
-      push('l');
+      push(']');
       ndepth++;
       for (j = 0; j < tok->size - 1; j++)
         if (push(',') == -1)
@@ -71,11 +78,16 @@ iterate(const char *input, jsmntok_t *tokens, int nrtokens, void (*iterator)(jsm
       break;
     }
 
-    if (!tok->size)
-      while ((c = pop()) == 'l')
+    cp = closesym;
+    if (!tok->size) {
+      while ((c = pop()) == ']' || c == '}') {
         ndepth--;
+        *cp++ = c;
+      }
+    }
+    *cp = '\0';
 
-    iterator(tok, key, depth, ndepth);
+    iterator(tok, key, depth, ndepth, closesym);
     depth = ndepth;
   }
 
