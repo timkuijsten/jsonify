@@ -43,6 +43,46 @@ from_relaxed(jsmn_parser *p, const char *line, ssize_t linelen, jsmntok_t *token
 }
 
 int
+iterate(const char *input, jsmntok_t *tokens, int nrtokens, void (*iterator)(jsmntok_t *, char *, int, int))
+{
+  char *key, c;
+  jsmntok_t *tok;
+  int i, j;
+  int depth, ndepth;
+
+  depth = ndepth = 0;
+
+  for (i = 0; i < nrtokens; i++) {
+    tok = &tokens[i];
+    key = strndup(input + tok->start, tok->end - tok->start);
+
+    switch (tok->type) {
+    case JSMN_OBJECT:
+    case JSMN_ARRAY:
+      push('l');
+      ndepth++;
+      for (j = 0; j < tok->size - 1; j++)
+        if (push(',') == -1)
+          fatal("stack push error");
+      break;
+    case JSMN_UNDEFINED:
+    case JSMN_STRING:
+    case JSMN_PRIMITIVE:
+      break;
+    }
+
+    if (!tok->size)
+      while ((c = pop()) == 'l')
+        ndepth--;
+
+    iterator(tok, key, depth, ndepth);
+    depth = ndepth;
+  }
+
+  return 0;
+}
+
+int
 to_strict(char *output, size_t outputsize, const char *input, jsmntok_t *tokens, int nrtokens, int maxroot)
 {
   char *key, c;
