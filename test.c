@@ -67,16 +67,16 @@ int main()
 
   printf("test relaxed_to_strict with firstroot:\n");
 
-  failed += test_relaxed_to_strict_firstroot("{ a: true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}", 12);
-  failed += test_relaxed_to_strict_firstroot("   { a: true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}", 15);
-  failed += test_relaxed_to_strict_firstroot("{a:true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}", 10);
-  failed += test_relaxed_to_strict_firstroot("{a:true}{b:\"false\"}{ some: 1234 }", "{\"a\":true}", 9);
+  failed += test_relaxed_to_strict_firstroot("{ a: true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}", 11);
+  failed += test_relaxed_to_strict_firstroot("   { a: true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}", 14);
+  failed += test_relaxed_to_strict_firstroot("{a:true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}", 9);
+  failed += test_relaxed_to_strict_firstroot("{a:true}{b:\"false\"}{ some: 1234 }", "{\"a\":true}", 8);
 
   // multiple docs with nested multiple docs in one string
-  failed += test_relaxed_to_strict_firstroot("{ a: { b: true, c: false }, d: { a: { b: 0 } } } { b: \"false\" }  { some: 1234 }", "{\"a\":{\"b\":true,\"c\":false},\"d\":{\"a\":{\"b\":0}}}", 49);
+  failed += test_relaxed_to_strict_firstroot("{ a: { b: true, c: false }, d: { a: { b: 0 } } } { b: \"false\" }  { some: 1234 }", "{\"a\":{\"b\":true,\"c\":false},\"d\":{\"a\":{\"b\":0}}}", 48);
 
   // test incomplete documents
-  failed += test_relaxed_to_strict_firstroot("{ a: true } { b:", "{\"a\":true}", 12);
+  failed += test_relaxed_to_strict_firstroot("{ a: true } { b:", "{\"a\":true}", 11);
   failed += test_relaxed_to_strict_firstroot("{ a: true  { b:", "{ a: true  { b:", -1);
 
   return failed;

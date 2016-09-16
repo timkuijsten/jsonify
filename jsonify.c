@@ -39,6 +39,7 @@ relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t in
       jsmn_init(&parser);
       nrtokens = jsmn_parse(&parser, input, i++, tokens, TOKENS);
     } while (i < inputlen && (nrtokens == JSMN_ERROR_PART || nrtokens == 0));
+    i--;
   } else {
     jsmn_init(&parser);
     i = inputlen;
