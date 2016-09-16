@@ -8,7 +8,7 @@
 #define MAXSTR 1024
 
 int test_relaxed_to_strict(const char *input, const char *exp, const int exp_exit);
-int test_relaxed_to_strict_with_maxroot(const char *input, const int maxroot, const char *exp, const int exp_exit);
+int test_relaxed_to_strict_firstroot(const char *input, const char *exp, const int exp_exit);
 
 int main()
 {
@@ -63,22 +63,21 @@ int main()
   failed += test_relaxed_to_strict("{ a: { b: true, c: false }, d: { a: { b: 0 } } } { b: \"false\" }  { some: 1234 }", "{\"a\":{\"b\":true,\"c\":false},\"d\":{\"a\":{\"b\":0}}}{\"b\":\"false\"}{\"some\":1234}", 79);
 
   //////////////
-  // with maxroot
+  // with firstroot
 
-  printf("test relaxed_to_strict with maxroot:\n");
+  printf("test relaxed_to_strict with firstroot:\n");
 
-  failed += test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 0, "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}", 42);
-  failed += test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 1, "{\"a\":true}", 42);
-  failed += test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 2, "{\"a\":true}{\"b\":\"false\"}", 42);
-  failed += test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 3, "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}", 42);
-  failed += test_relaxed_to_strict_with_maxroot("{ a: true } { b: \"false\" }  { some: 1234 }", 4, "{\"a\":true}{\"b\":\"false\"}{\"some\":1234}", 42);
+  failed += test_relaxed_to_strict_firstroot("{ a: true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}", 12);
+  failed += test_relaxed_to_strict_firstroot("   { a: true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}", 15);
+  failed += test_relaxed_to_strict_firstroot("{a:true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}", 10);
+  failed += test_relaxed_to_strict_firstroot("{a:true}{b:\"false\"}{ some: 1234 }", "{\"a\":true}", 9);
 
   // multiple docs with nested multiple docs in one string
-  failed += test_relaxed_to_strict_with_maxroot("{ a: { b: true, c: false }, d: { a: { b: 0 } } } { b: \"false\" }  { some: 1234 }", 2, "{\"a\":{\"b\":true,\"c\":false},\"d\":{\"a\":{\"b\":0}}}{\"b\":\"false\"}", 79);
+  failed += test_relaxed_to_strict_firstroot("{ a: { b: true, c: false }, d: { a: { b: 0 } } } { b: \"false\" }  { some: 1234 }", "{\"a\":{\"b\":true,\"c\":false},\"d\":{\"a\":{\"b\":0}}}", 49);
 
   // test incomplete documents
-  failed += test_relaxed_to_strict_with_maxroot("{ a: true } { b:", 1, "{\"a\":true}", 12);
-  failed += test_relaxed_to_strict_with_maxroot("{ a: true  { b:", 1, "{ a: true  { b:", -1);
+  failed += test_relaxed_to_strict_firstroot("{ a: true } { b:", "{\"a\":true}", 12);
+  failed += test_relaxed_to_strict_firstroot("{ a: true  { b:", "{ a: true  { b:", -1);
 
   return failed;
 }
@@ -108,14 +107,14 @@ test_relaxed_to_strict(const char *input, const char *exp, const int exp_exit)
 }
 
 int
-test_relaxed_to_strict_with_maxroot(const char *input, const int maxroot, const char *exp, const int exp_exit)
+test_relaxed_to_strict_firstroot(const char *input, const char *exp, const int exp_exit)
 {
   int exit;
   char str[MAXSTR];
 
 
   strcpy(str, input);
-  if ((exit = relaxed_to_strict(str, MAXSTR, (char *)input, strlen(input), maxroot)) != exp_exit) {
+  if ((exit = relaxed_to_strict(str, MAXSTR, (char *)input, strlen(input), 1)) != exp_exit) {
     fprintf(stderr, "FAIL: %s = exit: %d, expected: %d\n", input, exit, exp_exit);
     return 1;
   }

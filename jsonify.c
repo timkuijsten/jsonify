@@ -41,19 +41,24 @@ relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t in
     } while (i < inputlen && (nrtokens == JSMN_ERROR_PART || nrtokens == 0));
   } else {
     jsmn_init(&parser);
+    i = inputlen;
     nrtokens = jsmn_parse(&parser, input, inputlen, tokens, TOKENS);
   }
 
+  if (nrtokens == 0)
+    return 0;
+  else if (nrtokens < 0)
+    return -1;
+
   // wipe internal buffer
   out[0] = '\0';
-
   if (iterate(input, tokens, nrtokens, (void (*)(jsmntok_t *, char *, int, int, char *))writer) == -1)
     return -1;
 
   if (strlcpy(output, out, outputsize) > outputsize)
     return -1;
 
-  return 0;
+  return i;
 }
 
 int
