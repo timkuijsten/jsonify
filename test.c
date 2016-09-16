@@ -19,6 +19,7 @@ int main()
   // one-dimensional
   failed += test_relaxed_to_strict("1", "1", 1);
   failed += test_relaxed_to_strict("[]", "[]", 2);
+  failed += test_relaxed_to_strict("{}", "{}", 2);
   failed += test_relaxed_to_strict("[1]", "[1]", 3);
   failed += test_relaxed_to_strict("[1,2]", "[1,2]", 5);
 
@@ -67,6 +68,9 @@ int main()
 
   printf("test relaxed_to_strict with firstroot:\n");
 
+  failed += test_relaxed_to_strict_firstroot("1", "1", 1);
+  failed += test_relaxed_to_strict_firstroot("[]", "[]", 2);
+  failed += test_relaxed_to_strict_firstroot("{}", "{}", 2);
   failed += test_relaxed_to_strict_firstroot("{ a: true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}", 11);
   failed += test_relaxed_to_strict_firstroot("   { a: true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}", 14);
   failed += test_relaxed_to_strict_firstroot("{a:true } { b: \"false\" }  { some: 1234 }", "{\"a\":true}", 9);
@@ -78,6 +82,9 @@ int main()
   // test incomplete documents
   failed += test_relaxed_to_strict_firstroot("{ a: true } { b:", "{\"a\":true}", 11);
   failed += test_relaxed_to_strict_firstroot("{ a: true  { b:", "{ a: true  { b:", -1);
+  failed += test_relaxed_to_strict_firstroot("1{", "1", 1);
+  failed += test_relaxed_to_strict_firstroot("[]{", "[]", 2);
+  failed += test_relaxed_to_strict_firstroot("{}{", "{}", 2);
 
   return failed;
 }
