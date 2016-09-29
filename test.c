@@ -22,6 +22,7 @@ int main()
   failed += test_relaxed_to_strict("{}", "{}", 2);
   failed += test_relaxed_to_strict("[1]", "[1]", 3);
   failed += test_relaxed_to_strict("[1,2]", "[1,2]", 5);
+  failed += test_relaxed_to_strict("{a: 'b' }", "{\"a\":\"b\"}", 9);
 
   // two-dimensional
   failed += test_relaxed_to_strict("[[]]", "[[]]", 4);
@@ -85,6 +86,12 @@ int main()
   failed += test_relaxed_to_strict_firstroot("1{", "1", 1);
   failed += test_relaxed_to_strict_firstroot("[]{", "[]", 2);
   failed += test_relaxed_to_strict_firstroot("{}{", "{}", 2);
+
+  // regress
+  failed += test_relaxed_to_strict("{u:\"foo\"}", "{\"u\":\"foo\"}", 9);
+  failed += test_relaxed_to_strict("{}", "{}", 2);
+  failed += test_relaxed_to_strict("{u:\"susanne\"}", "{\"u\":\"susanne\"}", 13);
+  failed += test_relaxed_to_strict("{\"$set\":{\"x\":'foo'}}", "{\"$set\":{\"x\":\"foo\"}}", 20);
 
   return failed;
 }
