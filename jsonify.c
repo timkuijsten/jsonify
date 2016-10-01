@@ -24,28 +24,25 @@ static char out[MAXOUTPUT];
 static size_t outsize = MAXOUTPUT;
 
 int
-relaxed_to_strict(char *dst, size_t dstsize, const char *src, ssize_t srclen, int firstonly)
+relaxed_to_strict(char *dst, size_t dstsize, const char *src, size_t srcsize, int firstonly)
 {
   int i;
   ssize_t nrtokens;
   jsmn_parser parser;
   jsmntok_t tokens[TOKENS];
 
-  if (*src == 0)
-    return 0;
-
   if (firstonly) {
     // stop after first document (root)
     i = 0;
     do {
       jsmn_init(&parser);
-      nrtokens = jsmn_parse(&parser, src, i++, tokens, TOKENS);
-    } while (i <= srclen && (nrtokens == JSMN_ERROR_PART || nrtokens == 0));
+      nrtokens = jsmn_parse(&parser, src, i, tokens, TOKENS);
+    } while (i++ < srcsize && (nrtokens == JSMN_ERROR_PART || nrtokens == 0));
     i--;
   } else {
     jsmn_init(&parser);
-    i = srclen;
-    nrtokens = jsmn_parse(&parser, src, srclen, tokens, TOKENS);
+    i = srcsize;
+    nrtokens = jsmn_parse(&parser, src, srcsize, tokens, TOKENS);
   }
 
   if (nrtokens == 0)
