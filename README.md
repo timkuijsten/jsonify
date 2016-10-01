@@ -10,12 +10,12 @@ Only tested with OS X 10.11, Ubuntu 12.04 and 14.04.
 * `dst` destination string, strict version of src
 * `dstsize` size of dst
 * `src` source string, relaxed json to tidy
-* `srcsize` size of src
+* `srcsize` size of src, must be <= LONG_MAX
 * `firstonly` if truthy, only the first encountered document will be parsed
 
 Returns the number of characters parsed in `src`, or -1 on error.
 ```c
-size_t relaxed_to_strict(char *dst, size_t dstsize, const char *src, size_t srcsize, int firstonly);
+long relaxed_to_strict(char *dst, size_t dstsize, const char *src, size_t srcsize, int firstonly);
 ```
 
 
