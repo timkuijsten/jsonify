@@ -1,5 +1,4 @@
 #include "jsonify.h"
-#include "common.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -105,7 +104,7 @@ test_relaxed_to_strict(const char *input, const char *exp, const int exp_exit)
 
   strcpy(str, input);
   if ((exit = relaxed_to_strict(str, MAXSTR, (char *)input, strlen(input), 0)) != exp_exit) {
-    fprintf(stderr, "FAIL: %s = exit: %d, expected: %d\n", input, exit, exp_exit);
+    warnx("FAIL: %s = exit: %d, expected: %d", input, exit, exp_exit);
     return 1;
   }
 
@@ -113,7 +112,7 @@ test_relaxed_to_strict(const char *input, const char *exp, const int exp_exit)
     printf("PASS: %s = \"%s\"\n", input, str);
     return 0;
   } else {
-    fprintf(stderr, "FAIL: %s = \"%s\" instead of \"%s\"\n", input, str, exp);
+    warnx("FAIL: %s = \"%s\" instead of \"%s\"", input, str, exp);
     return 1;
   }
 
@@ -129,7 +128,7 @@ test_relaxed_to_strict_firstroot(const char *input, const char *exp, const int e
 
   strcpy(str, input);
   if ((exit = relaxed_to_strict(str, MAXSTR, (char *)input, strlen(input), 1)) != exp_exit) {
-    fprintf(stderr, "FAIL: %s = exit: %d, expected: %d\n", input, exit, exp_exit);
+    warnx("FAIL: %s = exit: %d, expected: %d", input, exit, exp_exit);
     return 1;
   }
 
@@ -137,7 +136,7 @@ test_relaxed_to_strict_firstroot(const char *input, const char *exp, const int e
     printf("PASS: %s = \"%s\"\n", input, str);
     return 0;
   } else {
-    fprintf(stderr, "FAIL: %s = \"%s\" instead of \"%s\"\n", input, str, exp);
+    warnx("FAIL: %s = \"%s\" instead of \"%s\"", input, str, exp);
     return 1;
   }
 

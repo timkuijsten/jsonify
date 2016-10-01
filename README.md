@@ -21,7 +21,7 @@ long relaxed_to_strict(char *dst, size_t dstsize, const char *src, size_t srcsiz
 
 ## Tests
 
-    $ cc -Wall -Wextra common.c jsmn.c jsonify.c test.c && ./a.out; echo $?
+    $ cc -Wall -Wextra jsmn.c jsonify.c test.c && ./a.out; echo $?
 
 
 ## License
