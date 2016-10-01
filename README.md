@@ -4,21 +4,14 @@ Convert relaxed json formatted documents and output as strict json.
 
 Only tested with OS X 10.11, Ubuntu 12.04 and 14.04.
 
-## Installation
 
-Download and compile jsonify:
+## API
 
-    $ git clone https://github.com/timkuijsten/jsonify.git
-    $ cd jsonify
-    $ cc main.c common.c jsmn.c jsonify.c
+Return the number of characters parsed in `input`, or -1 on error.
+```c
+int relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t inputlen, int firstroot);
+```
 
-
-## Usage examples
-
-Read a "relaxed" json document and convert to strict json:
-
-    $ echo '{ foo: "bar" }' | ./a.out
-    {"foo":"bar"}
 
 ## Tests
 
