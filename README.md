@@ -7,15 +7,21 @@ Only tested with OS X 10.11, Ubuntu 12.04 and 14.04.
 
 ## API
 
-Return the number of characters parsed in `input`, or -1 on error.
+* `dst` destination string, strict version of src
+* `dstsize` size of dst
+* `src` source string, relaxed json to tidy
+* `srcsize` size of src
+* `firstonly` if truthy, only the first encountered document will be parsed
+
+Returns the number of characters parsed in `src`, or -1 on error.
 ```c
-int relaxed_to_strict(char *output, size_t outputsize, const char *input, ssize_t inputlen, int firstroot);
+size_t relaxed_to_strict(char *dst, size_t dstsize, const char *src, size_t srcsize, int firstonly);
 ```
 
 
 ## Tests
 
-    $ cc common.c jsmn.c jsonify.c test.c && ./a.out; echo $?
+    $ cc -Wall -Wextra common.c jsmn.c jsonify.c test.c && ./a.out; echo $?
 
 
 ## License
