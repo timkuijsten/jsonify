@@ -23,10 +23,10 @@ static char closesym[MAXSTACK];
 static char out[MAXOUTPUT];
 static size_t outsize = MAXOUTPUT;
 
-int
+size_t
 relaxed_to_strict(char *dst, size_t dstsize, const char *src, size_t srcsize, int firstonly)
 {
-  int i;
+  size_t i;
   ssize_t nrtokens;
   jsmn_parser parser;
   jsmntok_t tokens[TOKENS];
