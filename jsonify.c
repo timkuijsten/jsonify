@@ -251,10 +251,12 @@ human_readable_writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *cl
   for (i = 0; i < strlen(closesym); i++) {
     // indent with two spaces per depth
     if (closesym[i] == '}') {
-      if (strlcat(out, "\n", outsize) > outsize)
-        return;
+      if (ndepth < depth)
+        if (strlcat(out, "\n", outsize) > outsize)
+          return;
       for (j = 1; (size_t)j < depth - i; j++)
         strlcat(out, "  ", outsize);
+
       if (strlcat(out, "}", outsize) > outsize)
         return;
     } else if (closesym[i] == ']') {
