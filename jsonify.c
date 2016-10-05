@@ -55,7 +55,7 @@ relaxed_to_strict(char *dst, size_t dstsize, const char *src, size_t srcsize, in
 
   // wipe internal buffer
   out[0] = '\0';
-  if (iterate(src, tokens, nrtokens, (void (*)(jsmntok_t *, char *, int, int, char *))writer) == -1)
+  if (iterate(src, tokens, nrtokens, (void (*)(jsmntok_t *, char *, int, int, char *))strict_writer) == -1)
     return -1;
 
   if (strlcpy(dst, out, dstsize) > dstsize)
@@ -116,7 +116,7 @@ iterate(const char *src, jsmntok_t *tokens, int nrtokens, void (*iterator)(jsmnt
 }
 
 void
-writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym)
+strict_writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym)
 {
   switch (tok->type) {
   case JSMN_OBJECT:
