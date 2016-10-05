@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAXSTR 1024
+#define MAXSTR 102400
 
 int test_indent(const char *input, const char *exp, const int exp_exit);
 int test_relaxed_to_strict(const char *input, const char *exp, const int exp_exit);

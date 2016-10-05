@@ -25,9 +25,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define TOKENS 100
-#define MAXSTACK 100
-#define MAXOUTPUT 1024 * 16
+#define TOKENS 1000
+#define MAXSTACK 1000
+#define MAXOUTPUT 1024 * 16 * 16
 
 int pop();
 int push(int val);
