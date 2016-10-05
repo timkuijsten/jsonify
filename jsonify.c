@@ -216,8 +216,21 @@ indent_writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym)
   case JSMN_ARRAY:
     strlcat(out, "[ ", outsize);
     break;
-  case JSMN_UNDEFINED:
   case JSMN_STRING:
+    if (tok->size) { // this is a key
+      strlcat(out, "\n", outsize);
+      // indent with two spaces per next depth
+      for (i = 0; i < (size_t)ndepth; i++)
+        strlcat(out, "  ", outsize);
+      strlcat(out, key, outsize);
+      strlcat(out, ": ", outsize);
+    } else { // this is a value
+      strlcat(out, "\"" , outsize);
+      strlcat(out, key, outsize);
+      strlcat(out, "\"" , outsize);
+    }
+    break;
+  case JSMN_UNDEFINED:
   case JSMN_PRIMITIVE:
     if (tok->size) { // this is a key
       strlcat(out, "\n", outsize);
