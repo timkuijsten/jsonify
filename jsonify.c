@@ -215,7 +215,7 @@ human_readable_writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *cl
     strlcat(out, "{", outsize);
     break;
   case JSMN_ARRAY:
-    strlcat(out, "[ ", outsize);
+    strlcat(out, "[", outsize);
     break;
   case JSMN_STRING:
     if (tok->size) { // this is a key
@@ -260,7 +260,7 @@ human_readable_writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *cl
       if (strlcat(out, "}", outsize) > outsize)
         return;
     } else if (closesym[i] == ']') {
-      if (strlcat(out, " ]", outsize) > outsize)
+      if (strlcat(out, "]", outsize) > outsize)
         return;
     } else {
       // unknown character

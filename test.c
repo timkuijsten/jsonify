@@ -19,8 +19,8 @@ int main()
   // one-dimensional
   failed += test_human_readable("{a: 'b', c:d}", "{\n  a: 'b',\n  c: d\n}", 13);
   failed += test_human_readable("{set:{x:'foo'}}", "{\n  set: {\n    x: 'foo'\n  }\n}", 15);
-  failed += test_human_readable("{set:[a,b,c], x: {y:'foo'}}", "{\n  set: [ a,b,c ],\n  x: {\n    y: 'foo'\n  }\n}", 27);
-  failed += test_human_readable("{set:[a,b,c], x: {y: {'foo':z, j: { 0:2,k:{l:m}}} }}", "{\n  set: [ a,b,c ],\n  x: {\n    y: {\n      'foo': z,\n      j: {\n        0: 2,\n        k: {\n          l: m\n        }\n      }\n    }\n  }\n}", 52);
+  failed += test_human_readable("{set:[a,b,c], x: {y:'foo'}}", "{\n  set: [a,b,c],\n  x: {\n    y: 'foo'\n  }\n}", 27);
+  failed += test_human_readable("{set:[a,b,c], x: {y: {'foo':z, j: { 0:2,k:{l:m}}} }}", "{\n  set: [a,b,c],\n  x: {\n    y: {\n      'foo': z,\n      j: {\n        0: 2,\n        k: {\n          l: m\n        }\n      }\n    }\n  }\n}", 52);
   failed += test_human_readable("{a: 'b', c:d,e:{},f:{a:b}}", "{\n  a: 'b',\n  c: d,\n  e: {},\n  f: {\n    a: b\n  }\n}", 26);
 
   printf("test relaxed_to_strict:\n");
