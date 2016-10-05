@@ -6,12 +6,21 @@
 
 #define MAXSTR 1024
 
+int test_indent(const char *input, const char *exp, const int exp_exit);
 int test_relaxed_to_strict(const char *input, const char *exp, const int exp_exit);
 int test_relaxed_to_strict_firstroot(const char *input, const char *exp, const int exp_exit);
 
 int main()
 {
   int failed = 0;
+
+  printf("test indent:\n");
+
+  // one-dimensional
+  failed += test_indent("{a: 'b', c:d}", "{\n  a: 'b',\n  c: d\n}", 13);
+  failed += test_indent("{set:{x:'foo'}}", "{\n  set: {\n    x: 'foo'\n  }\n}", 15);
+  failed += test_indent("{set:[a,b,c], x: {y:'foo'}}", "{\n  set: [ a,b,c ],\n  x: {\n    y: 'foo'\n  }\n}", 27);
+  failed += test_indent("{set:[a,b,c], x: {y: {'foo':z, j: { 0:2,k:{l:m}}} }}", "{\n  set: [ a,b,c ],\n  x: {\n    y: {\n      'foo': z,\n      j: {\n        0: 2,\n        k: {\n          l: m\n        }\n      }\n    }\n  }\n}", 52);
 
   printf("test relaxed_to_strict:\n");
 
@@ -93,6 +102,30 @@ int main()
   failed += test_relaxed_to_strict("{\"$set\":{\"x\":'foo'}}", "{\"$set\":{\"x\":\"foo\"}}", 20);
 
   return failed;
+}
+
+int
+test_indent(const char *input, const char *exp, const int exp_exit)
+{
+  int exit;
+  char str[MAXSTR];
+
+
+  strcpy(str, input);
+  if ((exit = indent(str, MAXSTR, (char *)input, strlen(input))) != exp_exit) {
+    warnx("FAIL: %s = exit: %d, expected: %d", input, exit, exp_exit);
+    return 1;
+  }
+
+  if (strcmp(str, exp) == 0) {
+    printf("PASS: %s = \"%s\"\n", input, str);
+    return 0;
+  } else {
+    warnx("FAIL: %s = \"%s\" instead of \"%s\"", input, str, exp);
+    return 1;
+  }
+
+  return -1;
 }
 
 int
