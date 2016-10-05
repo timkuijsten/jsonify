@@ -110,8 +110,9 @@ test_indent(const char *input, const char *exp, const int exp_exit)
   int exit;
   char str[MAXSTR];
 
+  if (strlcpy(str, input, MAXSTR) > MAXSTR)
+    err(1, NULL);
 
-  strcpy(str, input);
   if ((exit = indent(str, MAXSTR, (char *)input, strlen(input))) != exp_exit) {
     warnx("FAIL: %s = exit: %d, expected: %d", input, exit, exp_exit);
     return 1;
@@ -134,8 +135,9 @@ test_relaxed_to_strict(const char *input, const char *exp, const int exp_exit)
   int exit;
   char str[MAXSTR];
 
+  if (strlcpy(str, input, MAXSTR) > MAXSTR)
+    err(1, NULL);
 
-  strcpy(str, input);
   if ((exit = relaxed_to_strict(str, MAXSTR, (char *)input, strlen(input), 0)) != exp_exit) {
     warnx("FAIL: %s = exit: %d, expected: %d", input, exit, exp_exit);
     return 1;
@@ -158,8 +160,9 @@ test_relaxed_to_strict_firstroot(const char *input, const char *exp, const int e
   int exit;
   char str[MAXSTR];
 
+  if (strlcpy(str, input, MAXSTR) > MAXSTR)
+    err(1, NULL);
 
-  strcpy(str, input);
   if ((exit = relaxed_to_strict(str, MAXSTR, (char *)input, strlen(input), 1)) != exp_exit) {
     warnx("FAIL: %s = exit: %d, expected: %d", input, exit, exp_exit);
     return 1;
