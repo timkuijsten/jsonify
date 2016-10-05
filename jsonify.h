@@ -32,10 +32,10 @@
 int pop();
 int push(int val);
 
-long indent(char *dst, size_t dstsize, const char *src, size_t srcsize);
+long human_readable(char *dst, size_t dstsize, const char *src, size_t srcsize);
 long relaxed_to_strict(char *dst, size_t dstsize, const char *src, size_t srcsize, int firstonly);
 int iterate(const char *src, jsmntok_t *tokens, int nrtokens, void (*iterator)(jsmntok_t *, char *, int, int, char *));
 void strict_writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym);
-void indent_writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym);
+void human_readable_writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym);
 
 #endif

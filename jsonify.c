@@ -24,7 +24,7 @@ static char out[MAXOUTPUT];
 static size_t outsize = MAXOUTPUT;
 
 long
-indent(char *dst, size_t dstsize, const char *src, size_t srcsize)
+human_readable(char *dst, size_t dstsize, const char *src, size_t srcsize)
 {
   size_t i;
   ssize_t nrtokens;
@@ -45,7 +45,7 @@ indent(char *dst, size_t dstsize, const char *src, size_t srcsize)
 
   // wipe internal buffer
   out[0] = '\0';
-  if (iterate(src, tokens, nrtokens, (void (*)(jsmntok_t *, char *, int, int, char *))indent_writer) == -1)
+  if (iterate(src, tokens, nrtokens, (void (*)(jsmntok_t *, char *, int, int, char *))human_readable_writer) == -1)
     return -1;
 
   if (strlcpy(dst, out, dstsize) > dstsize)
@@ -201,10 +201,11 @@ strict_writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym)
 
 /*
  * Convert json objects to contain two spaces per indent level and newlines
- * after every key value pair or opening of a new object.
+ * after every key value pair or opening of a new object. Also sprinkle in some
+ * white space in arrays and don't quote keys.
  */
 void
-indent_writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym)
+human_readable_writer(jsmntok_t *tok, char *key, int depth, int ndepth, char *closesym)
 {
   size_t i;
   int j;
