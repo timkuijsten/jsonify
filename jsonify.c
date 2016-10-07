@@ -108,6 +108,8 @@ iterate(const char *src, jsmntok_t *tokens, int nrtokens, void (*iterator)(jsmnt
   for (i = 0; i < nrtokens; i++) {
     tok = &tokens[i];
     key = strndup(src + tok->start, tok->end - tok->start);
+    if (key == NULL)
+      err(1, NULL);
 
     switch (tok->type) {
     case JSMN_OBJECT:
@@ -141,6 +143,8 @@ iterate(const char *src, jsmntok_t *tokens, int nrtokens, void (*iterator)(jsmnt
 
     iterator(tok, key, depth, ndepth, closesym);
     depth = ndepth;
+
+    free(key);
   }
 
   return 0;
