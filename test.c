@@ -91,7 +91,7 @@ int main()
 
   // test incomplete documents
   failed += test_relaxed_to_strict_firstroot("{ a: true } { b:", "{\"a\":true}", 11);
-  failed += test_relaxed_to_strict_firstroot("{ a: true  { b:", "{ a: true  { b:", -1);
+  failed += test_relaxed_to_strict_firstroot("{ a: true  { b:", "{ a: true  { b:", -3); // -3 = incomplete json doc error
   failed += test_relaxed_to_strict_firstroot("1{", "1", 1);
   failed += test_relaxed_to_strict_firstroot("[]{", "[]", 2);
   failed += test_relaxed_to_strict_firstroot("{}{", "{}", 2);
