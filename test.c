@@ -114,7 +114,7 @@ test_human_readable(const char *input, const char *exp, const int exp_exit)
   if (strlcpy(str, input, MAXSTR) > MAXSTR)
     err(1, NULL);
 
-  if ((exit = human_readable(str, MAXSTR, (char *)input, strlen(input))) != exp_exit) {
+  if ((exit = human_readable((unsigned char *)str, MAXSTR, (char *)input, strlen(input))) != exp_exit) {
     warnx("FAIL: %s = exit: %d, expected: %d", input, exit, exp_exit);
     return 1;
   }
@@ -139,7 +139,7 @@ test_relaxed_to_strict(const char *input, const char *exp, const int exp_exit)
   if (strlcpy(str, input, MAXSTR) > MAXSTR)
     err(1, NULL);
 
-  if ((exit = relaxed_to_strict(str, MAXSTR, (char *)input, strlen(input), 0)) != exp_exit) {
+  if ((exit = relaxed_to_strict((unsigned char *)str, MAXSTR, (char *)input, strlen(input), 0)) != exp_exit) {
     warnx("FAIL: %s = exit: %d, expected: %d", input, exit, exp_exit);
     return 1;
   }
@@ -164,7 +164,7 @@ test_relaxed_to_strict_firstroot(const char *input, const char *exp, const int e
   if (strlcpy(str, input, MAXSTR) > MAXSTR)
     err(1, NULL);
 
-  if ((exit = relaxed_to_strict(str, MAXSTR, (char *)input, strlen(input), 1)) != exp_exit) {
+  if ((exit = relaxed_to_strict((unsigned char *)str, MAXSTR, (char *)input, strlen(input), 1)) != exp_exit) {
     warnx("FAIL: %s = exit: %d, expected: %d", input, exit, exp_exit);
     return 1;
   }
