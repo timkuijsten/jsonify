@@ -55,7 +55,7 @@ int main()
   failed += test_relaxed_to_strict("[[],[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,[23]],6,7],8]]]", "[[],[[[[],[],2],[]],1,[2,3],4,[5,[],[[23,5],[23],[23,[23]],6,7],8]]]", 68);
 
   // one-dimensional
-  failed += test_relaxed_to_strict("{a:true}", "{\"a\":true}", 8);
+  failed += test_relaxed_to_strict("{ a: true }", "{\"a\":true}", 11);
 
   // two-dimensional
   failed += test_relaxed_to_strict("[{a:true,b:false},[{c:true}]]", "[{\"a\":true,\"b\":false},[{\"c\":true}]]", 29);
@@ -127,7 +127,7 @@ test_human_readable(const char *input, const char *exp, const int exp_exit)
     return 1;
   }
 
-  return -1;
+  return 1;
 }
 
 int
@@ -152,7 +152,7 @@ test_relaxed_to_strict(const char *input, const char *exp, const int exp_exit)
     return 1;
   }
 
-  return -1;
+  return 1;
 }
 
 int
@@ -177,5 +177,5 @@ test_relaxed_to_strict_firstroot(const char *input, const char *exp, const int e
     return 1;
   }
 
-  return -1;
+  return 1;
 }
